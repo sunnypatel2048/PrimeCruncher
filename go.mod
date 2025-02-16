@@ -1,3 +1,3 @@
-module primecruncher.com/m
+module github.com/sunnypatel2048/primecruncher
 
-go 1.23.6
+go 1.24.0
