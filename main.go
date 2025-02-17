@@ -59,8 +59,8 @@ func main() {
 		integers[i] = binary.LittleEndian.Uint64(data[i*8 : (i+1)*8])
 	}
 
-	for i := 0; i < 10 && i < len(integers); i++ {
-		fmt.Printf("%d\n", integers[i])
+	for i := 0; i < len(integers); i++ {
+		fmt.Println(isPrime(integers[i]))
 	}
 
 	output += fmt.Sprintf("M: %d N: %d C: %d path: %s", *M, *N, *C, pathName)
