@@ -80,7 +80,6 @@ func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.W
 			PrimeCount: numPrimes,
 		}
 
-		fmt.Printf("Worker %d processed segment starting at %d, length %d, found %d primes\n", id, job.Start, job.Length, numPrimes)
 		slog.Info("Job completed",
 			"workerID", id,
 			"filePath", job.FilePath,
