@@ -89,6 +89,7 @@ func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.W
 	}
 }
 
+// Consolidator collects results from the resultQueue and calculates the total number of primes
 func Consolidator(resultQueue <-chan Result, numJobs int64, done chan<- int) {
 	totalPrimes := 0
 
