@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"log/slog"
 	"math/rand"
 	"sync"
@@ -96,7 +95,6 @@ func Consolidator(resultQueue <-chan Result, numJobs int64, done chan<- int) {
 	for i := int64(0); i < numJobs; i++ {
 		result := <-resultQueue
 		totalPrimes += result.PrimeCount
-		fmt.Printf("Consolidator received result: %d primes found in segment starting at %d\n", result.PrimeCount, result.Job.Start)
 		slog.Info("Consolidator received result",
 			"numPrimes", result.PrimeCount,
 			"start", result.Job.Start,
