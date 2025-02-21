@@ -10,9 +10,9 @@ import (
 func main() {
 	output := ""
 
-	M := flag.Int("M", 1, "number of worker threads")
-	N := flag.Int("N", 64000, "partition size in bytes")
-	C := flag.Int("C", 1000, "chunk size in bytes")
+	M := flag.Int64("M", 1, "number of worker threads")
+	N := flag.Int64("N", 64000, "partition size in bytes")
+	C := flag.Int64("C", 1000, "chunk size in bytes")
 	flag.Parse()
 	pathName := flag.Arg(0)
 
@@ -25,6 +25,16 @@ func main() {
 		fmt.Println("Please provide a file name")
 		os.Exit(1)
 	}
+
+	jobQueue := make(chan Job, *M)
+
+	go func() {
+		err := Dispatcher(jobQueue, pathName, *N)
+		if err != nil {
+			fmt.Println("Error dispatching jobs:", err)
+			os.Exit(1)
+		}
+	}()
 
 	file, err := os.Open(pathName)
 	if err != nil {
