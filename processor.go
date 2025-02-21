@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"sync"
 	"time"
@@ -44,7 +45,7 @@ func Dispatcher(jobQueue chan<- Job, filePath string, N int64) error {
 }
 
 // Worker processes jobs from the jobQueue and sends results to the resultQueue
-func Worker(id int, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.WaitGroup, chunkSize int) {
+func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.WaitGroup, chunkSize int64) {
 	defer wg.Done()
 
 	sleepDuration := time.Duration(rand.Intn(201)+400) * time.Millisecond
@@ -53,15 +54,15 @@ func Worker(id int, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.Wai
 	for job := range jobQueue {
 		segment, err := ReadSegment(job.FilePath, job.Start, job.Length)
 		if err != nil {
-			fmt.Printf("Worker %d: error reading segment: %v\n", id, err)
+			slog.Error("Failed to read segment", "workerID", id, "error", err)
 			continue
 		}
 
 		numPrimes := 0
-		for i := 0; i < len(segment); i += chunkSize {
+		for i := int64(0); i < int64(len(segment)); i += chunkSize {
 			end := i + chunkSize
-			if end > len(segment) {
-				end = len(segment)
+			if end > int64(len(segment)) {
+				end = int64(len(segment))
 			}
 			chunk := segment[i:end]
 
@@ -80,5 +81,28 @@ func Worker(id int, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.Wai
 		}
 
 		fmt.Printf("Worker %d processed segment starting at %d, length %d, found %d primes\n", id, job.Start, job.Length, numPrimes)
+		slog.Info("Job completed",
+			"workerID", id,
+			"filePath", job.FilePath,
+			"start", job.Start,
+			"length", job.Length,
+			"numPrimes", numPrimes,
+		)
 	}
+}
+
+func Consolidator(resultQueue <-chan Result, numJobs int64, done chan<- int) {
+	totalPrimes := 0
+
+	for i := int64(0); i < numJobs; i++ {
+		result := <-resultQueue
+		totalPrimes += result.PrimeCount
+		fmt.Printf("Consolidator received result: %d primes found in segment starting at %d\n", result.PrimeCount, result.Job.Start)
+		slog.Info("Consolidator received result",
+			"numPrimes", result.PrimeCount,
+			"start", result.Job.Start,
+		)
+	}
+
+	done <- totalPrimes
 }
