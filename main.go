@@ -68,7 +68,7 @@ func main() {
 	totalPrimes := <-done
 
 	elapsedTime := time.Since(startTime)
-	slog.Info("Elapsed time", "elapsedTime", elapsedTime.String())
+	slog.Info("Elapsed time", "elapsedTime", elapsedTime.Milliseconds())
 
 	slog.Info("Total primes found", "totalPrimes", totalPrimes)
 
