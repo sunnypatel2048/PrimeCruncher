@@ -11,8 +11,8 @@ import (
 
 func main() {
 	M := flag.Int64("M", 1, "number of worker threads")
-	N := flag.Int64("N", 64000, "partition size in bytes")
-	C := flag.Int64("C", 1000, "chunk size in bytes")
+	N := flag.Int64("N", 65536, "partition size in bytes")
+	C := flag.Int64("C", 1024, "chunk size in bytes")
 	flag.Parse()
 	pathName := flag.Arg(0)
 
