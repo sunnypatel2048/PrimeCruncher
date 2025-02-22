@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -14,6 +15,9 @@ func main() {
 	C := flag.Int64("C", 1000, "chunk size in bytes")
 	flag.Parse()
 	pathName := flag.Arg(0)
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
 	if *N%8 != 0 || *C%8 != 0 {
 		slog.Error("N and C must be multiples of 8")
@@ -31,6 +35,8 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	jobsCompleted := make([]int64, *M)
+
 	startTime := time.Now()
 
 	go func() {
@@ -43,7 +49,7 @@ func main() {
 
 	for i := int64(1); i <= *M; i++ {
 		wg.Add(1)
-		go Worker(i, jobQueue, resultQueue, &wg, *C)
+		go Worker(i, jobQueue, resultQueue, &wg, *C, &jobsCompleted)
 	}
 
 	fileSize, err := GetFileSize(pathName)
@@ -62,7 +68,33 @@ func main() {
 	totalPrimes := <-done
 
 	elapsedTime := time.Since(startTime)
-	slog.Info("Elapsed time", "elapsedTime", elapsedTime)
+	slog.Info("Elapsed time", "elapsedTime", elapsedTime.String())
 
 	slog.Info("Total primes found", "totalPrimes", totalPrimes)
+
+	if len(jobsCompleted) > 0 {
+		sort.Slice(jobsCompleted,
+			func(i, j int) bool { return jobsCompleted[i] < jobsCompleted[j] })
+
+		min := jobsCompleted[0]
+		max := jobsCompleted[len(jobsCompleted)-1]
+		sum := int64(0)
+		for _, count := range jobsCompleted {
+			sum += count
+		}
+		avg := float64(sum) / float64(len(jobsCompleted))
+		median := jobsCompleted[len(jobsCompleted)/2]
+		if len(jobsCompleted)%2 == 0 {
+			median = (jobsCompleted[len(jobsCompleted)/2-1] + jobsCompleted[len(jobsCompleted)/2]) / 2
+		}
+
+		slog.Info("Jobs completed statistics",
+			"min", min,
+			"max", max,
+			"average", avg,
+			"median", median,
+		)
+	}
+
+	println("Total primes found:", totalPrimes)
 }

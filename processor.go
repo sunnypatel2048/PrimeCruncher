@@ -44,12 +44,13 @@ func Dispatcher(jobQueue chan<- Job, filePath string, N int64) error {
 }
 
 // Worker processes jobs from the jobQueue and sends results to the resultQueue
-func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.WaitGroup, chunkSize int64) {
+func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.WaitGroup, chunkSize int64, jobsCompleted *[]int64) {
 	defer wg.Done()
 
 	sleepDuration := time.Duration(rand.Intn(201)+400) * time.Millisecond
 	time.Sleep(sleepDuration)
 
+	count := int64(0)
 	for job := range jobQueue {
 		segment, err := ReadSegment(job.FilePath, job.Start, job.Length)
 		if err != nil {
@@ -79,14 +80,11 @@ func Worker(id int64, jobQueue <-chan Job, resultQueue chan<- Result, wg *sync.W
 			PrimeCount: numPrimes,
 		}
 
-		slog.Info("Job completed",
-			"workerID", id,
-			"filePath", job.FilePath,
-			"start", job.Start,
-			"length", job.Length,
-			"numPrimes", numPrimes,
-		)
+		count++
 	}
+
+	*jobsCompleted = append(*jobsCompleted, count)
+	slog.Info("Worker completed jobs", "workerID", id, "numJobs", count)
 }
 
 // Consolidator collects results from the resultQueue and calculates the total number of primes
