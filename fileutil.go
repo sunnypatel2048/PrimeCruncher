@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// OpenFile opens a file and returns a file descriptor
 func OpenFile(filePath string) (*os.File, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -15,6 +16,7 @@ func OpenFile(filePath string) (*os.File, error) {
 	return file, nil
 }
 
+// GetFileSize returns the size of a file in bytes
 func GetFileSize(filePath string) (int64, error) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
@@ -24,6 +26,7 @@ func GetFileSize(filePath string) (int64, error) {
 	return fileInfo.Size(), nil
 }
 
+// ReadSegment reads a segment of a file and returns it as a byte slice
 func ReadSegment(filePath string, start, length int64) ([]byte, error) {
 	file, err := OpenFile(filePath)
 	if err != nil {

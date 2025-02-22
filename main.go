@@ -39,6 +39,7 @@ func main() {
 
 	startTime := time.Now()
 
+	// start the dispatcher
 	go func() {
 		err := Dispatcher(jobQueue, pathName, *N)
 		if err != nil {
@@ -47,6 +48,7 @@ func main() {
 		}
 	}()
 
+	// start the workers
 	for i := int64(1); i <= *M; i++ {
 		wg.Add(1)
 		go Worker(i, jobQueue, resultQueue, &wg, *C, &jobsCompleted)
@@ -58,13 +60,16 @@ func main() {
 	}
 	numJobs := (fileSize + *N - 1) / *N
 
+	// start the consolidator
 	go Consolidator(resultQueue, numJobs, done)
 
+	// wait for all workers to finish
 	go func() {
 		wg.Wait()
 		close(resultQueue)
 	}()
 
+	// wait for consolidator to finish and get the total number of primes found
 	totalPrimes := <-done
 
 	elapsedTime := time.Since(startTime)
