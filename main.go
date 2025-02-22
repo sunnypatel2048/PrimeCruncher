@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -30,6 +31,8 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	startTime := time.Now()
+
 	go func() {
 		err := Dispatcher(jobQueue, pathName, *N)
 		if err != nil {
@@ -51,10 +54,15 @@ func main() {
 
 	go Consolidator(resultQueue, numJobs, done)
 
-	wg.Wait()
-	close(resultQueue)
+	go func() {
+		wg.Wait()
+		close(resultQueue)
+	}()
 
 	totalPrimes := <-done
+
+	elapsedTime := time.Since(startTime)
+	slog.Info("Elapsed time", "elapsedTime", elapsedTime)
 
 	slog.Info("Total primes found", "totalPrimes", totalPrimes)
 }
