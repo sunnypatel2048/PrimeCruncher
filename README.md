@@ -53,8 +53,7 @@ Each of the M worker threads performs the following steps:
     * Uses the GoLang encoding/binary package to decode 64-bit unsigned integers in little-endian byte order.
     * Counts the number of 64-bit unsigned integers in the segment that are prime.
     * Places a result descriptor into the results queue, including the job descriptor and the prime count.
-
-Terminates when there are no more jobs in the job queue.
+4. Terminates when there are no more jobs in the job queue.
 
 ### Consolidator
 
@@ -82,4 +81,4 @@ Chunked Reading: Reading the file in C-byte chunks optimizes I/O operations, bal
 * **Minimal Communication:** Job and result descriptors are compact, minimizing the amount of data communicated between threads.
 * **Random Worker Delays:** Initial random sleep delays (400-600 ms) help stagger worker startup, reducing contention on the job queue.
 
-The implementation is correct (produces accurate prime counts) and free of race conditions due to the use of channels for all inter-thread communication.
+The implementation produces accurate prime counts and is free of race conditions due to the use of channels for all inter-thread communication.
