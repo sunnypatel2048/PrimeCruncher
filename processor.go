@@ -19,8 +19,8 @@ type Result struct {
 	PrimeCount int
 }
 
-// Dispatcher divides the file into N-byte segments and sends them to the jobQueue
-func Dispatcher(jobQueue chan<- Job, filePath string, N int64) error {
+// Dispatcher divides the file into segments and sends them to the jobQueue
+func Dispatcher(jobQueue chan<- Job, filePath string, segmentSize int64) error {
 	fileSize, err := GetFileSize(filePath)
 	if err != nil {
 		return err
@@ -28,8 +28,8 @@ func Dispatcher(jobQueue chan<- Job, filePath string, N int64) error {
 
 	var start int64 = 0
 	for start < fileSize {
-		length := N
-		if start+N > fileSize {
+		length := segmentSize
+		if start+segmentSize > fileSize {
 			length = fileSize - start
 		}
 		jobQueue <- Job{
@@ -37,7 +37,7 @@ func Dispatcher(jobQueue chan<- Job, filePath string, N int64) error {
 			Start:    start,
 			Length:   length,
 		}
-		start += N
+		start += segmentSize
 	}
 	close(jobQueue)
 	return nil
